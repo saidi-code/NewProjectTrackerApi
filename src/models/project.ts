@@ -6,6 +6,13 @@ const teamMemberSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  email: {
+    // Add this field
+    type: String,
+    required: false,
+    lowercase: true,
+    trim: true,
+  },
   role: {
     type: String,
     enum: ["owner", "admin", "manager", "member", "viewer"],

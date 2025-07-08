@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
-import Task from "../models/Task";
-import Project from "../models/Project";
+import Task from "../models/task";
+import Project from "../models/project";
 import { ITask } from "../types/task";
-
-export const createTask = async (req: Request, res: Response) => {
+function isError(error: unknown): error is Error {
+  return error instanceof Error;
+}
+export const createTask = async (req: any, res: any) => {
   try {
     // Check if user has access to the project
     const project = await Project.findOne({
@@ -23,12 +25,16 @@ export const createTask = async (req: Request, res: Response) => {
     });
 
     res.status(201).json(task);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (error: unknown) {
+    if (isError(error)) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Unknown error" });
+    }
   }
 };
 
-export const updateTask = async (req: Request, res: Response) => {
+export const updateTask = async (req: any, res: any) => {
   try {
     const task = await Task.findOneAndUpdate(
       {
@@ -48,12 +54,16 @@ export const updateTask = async (req: Request, res: Response) => {
     }
 
     res.json(task);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (error: unknown) {
+    if (isError(error)) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Unknown error" });
+    }
   }
 };
 
-export const getProjectTasks = async (req: Request, res: Response) => {
+export const getProjectTasks = async (req: any, res: any) => {
   try {
     // Verify user has access to the project
     const project = await Project.findOne({
@@ -73,8 +83,12 @@ export const getProjectTasks = async (req: Request, res: Response) => {
       .populate("createdBy", "name email avatar");
 
     res.json(tasks);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (error: unknown) {
+    if (isError(error)) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Unknown error" });
+    }
   }
 };
 

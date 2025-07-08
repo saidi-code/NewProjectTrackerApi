@@ -1,10 +1,12 @@
 import { Request, Response } from "express";
 import User from "../models/user";
-import { createToken } from "../utils/auth";
-import { IUser } from "../types/user";
 
+import { IUser } from "../types/user";
+function isError(error: unknown): error is Error {
+  return error instanceof Error;
+}
 import passport from "passport";
-export const register = async (req: Request, res: Response, next: any) => {
+export const register = async (req: Request, res: any, next: any) => {
   try {
     const { name, email, password } = req.body;
 
@@ -21,15 +23,16 @@ export const register = async (req: Request, res: Response, next: any) => {
       email: user.email,
       avatar: user.avatar,
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 };
 
-export const login = async (req: Request, res: Response, next: any) => {
+export const login = async (req: Request, res: any, next: any) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email }).select("+password");
+    const user: IUser = await User.findOne({ email }).select("+password");
+
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
@@ -59,12 +62,16 @@ export const login = async (req: Request, res: Response, next: any) => {
         avatar: user.avatar,
       },
     });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (error: unknown) {
+    if (isError(error)) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Unknown error" });
+    }
   }
 };
 
-export const logout = (req: Request, res: Response, next: any) => {
+export const logout = (req: Request, res: any, next: any) => {
   // Type guard for check if user is logged in
   if (!req.isAuthenticated()) {
     return res.status(401).json({ message: "Not authenticated" });

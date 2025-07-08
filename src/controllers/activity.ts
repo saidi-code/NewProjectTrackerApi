@@ -1,8 +1,10 @@
 import { Request, Response } from "express";
 import Activity from "../models/activity";
-import Project from "../models/Project";
-
-export const getProjectActivities = async (req: Request, res: Response) => {
+import Project from "../models/project";
+function isError(error: unknown): error is Error {
+  return error instanceof Error;
+}
+export const getProjectActivities = async (req: any, res: any) => {
   try {
     // Verify user has access to the project
     const project = await Project.findOne({
@@ -22,7 +24,11 @@ export const getProjectActivities = async (req: Request, res: Response) => {
       .populate("performedBy", "name avatar");
 
     res.json(activities);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (error: unknown) {
+    if (isError(error)) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Unknown error" });
+    }
   }
 };

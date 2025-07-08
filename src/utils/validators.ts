@@ -1,6 +1,6 @@
 import { Request } from "express";
 import { ValidationChain, body } from "express-validator";
-import { User } from "../models/User";
+import User from "../models/user";
 
 export const validateRegister = (): ValidationChain[] => [
   body("name").trim().notEmpty().withMessage("Name is required"),

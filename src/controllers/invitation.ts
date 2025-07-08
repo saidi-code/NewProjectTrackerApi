@@ -1,10 +1,12 @@
 import { Request, Response } from "express";
-import Invitation from "../models/Invitation";
-import Project from "../models/Project";
-import User from "../models/User";
-import { sendInvitationEmail } from "../services/email";
-
-export const inviteToProject = async (req: Request, res: Response) => {
+import Invitation from "../models/invitation";
+import Project from "../models/project";
+import User from "../models/user";
+import { sendInvitationEmail } from "../utils/email";
+function isError(error: unknown): error is Error {
+  return error instanceof Error;
+}
+export const inviteToProject = async (req: any, res: any) => {
   try {
     const { email, role } = req.body;
 
@@ -41,12 +43,16 @@ export const inviteToProject = async (req: Request, res: Response) => {
     await sendInvitationEmail(email, project.title, role, invitation.token);
 
     res.status(201).json(invitation);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (error: unknown) {
+    if (isError(error)) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Unknown error" });
+    }
   }
 };
 
-export const acceptInvitation = async (req: Request, res: Response) => {
+export const acceptInvitation = async (req: any, res: any) => {
   try {
     const { token } = req.body;
 
@@ -81,7 +87,11 @@ export const acceptInvitation = async (req: Request, res: Response) => {
       project: invitation.project,
       role: invitation.role,
     });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (error: unknown) {
+    if (isError(error)) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Unknown error" });
+    }
   }
 };

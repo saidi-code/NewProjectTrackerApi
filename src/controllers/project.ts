@@ -1,8 +1,10 @@
 import { Request, Response } from "express";
-import Project from "../models/Project";
+import Project from "../models/project";
 import { IProject } from "../types/project";
-
-export const createProject = async (req: Request, res: Response) => {
+function isError(error: unknown): error is Error {
+  return error instanceof Error;
+}
+export const createProject = async (req: any, res: Response) => {
   try {
     const { title, description } = req.body;
 
@@ -14,12 +16,16 @@ export const createProject = async (req: Request, res: Response) => {
     });
 
     res.status(201).json(project);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (error: unknown) {
+    if (isError(error)) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Unknown error" });
+    }
   }
 };
 
-export const getProject = async (req: Request, res: Response) => {
+export const getProject = async (req: any, res: any) => {
   try {
     const project = await Project.findOne({
       _id: req.params.id,
@@ -31,12 +37,16 @@ export const getProject = async (req: Request, res: Response) => {
     }
 
     res.json(project);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (error: unknown) {
+    if (isError(error)) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Unknown error" });
+    }
   }
 };
 
-export const updateProject = async (req: Request, res: Response) => {
+export const updateProject = async (req: any, res: any) => {
   try {
     const { title, description, status } = req.body;
 
@@ -57,19 +67,27 @@ export const updateProject = async (req: Request, res: Response) => {
     }
 
     res.json(project);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (error: unknown) {
+    if (isError(error)) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Unknown error" });
+    }
   }
 };
 
-export const getProjects = async (req: Request, res: Response) => {
+export const getProjects = async (req: any, res: Response) => {
   try {
     const projects = await Project.find({
       "team.user": req.user._id,
     }).sort("-createdAt");
 
     res.json(projects);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (error: unknown) {
+    if (isError(error)) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Unknown error" });
+    }
   }
 };
