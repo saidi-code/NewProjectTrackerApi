@@ -14,13 +14,15 @@ function isError(error: unknown): error is Error {
 }
 export const createProject = async (req: any, res: Response) => {
   try {
-    const { title, description } = req.body;
+    const { title, description, startDate, endDate } = req.body;
 
     const project = await Project.create({
       title,
       description,
       createdBy: req.user._id,
       team: [{ user: req.user._id, role: "owner" }],
+      startDate,
+      endDate,
     });
 
     res.status(201).json(project);

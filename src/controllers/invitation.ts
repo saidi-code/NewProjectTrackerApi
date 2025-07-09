@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import crypto from "crypto";
 import Invitation from "../models/invitation";
 import Project from "../models/project";
 import User from "../models/user";
@@ -32,11 +33,14 @@ export const inviteToProject = async (req: any, res: any) => {
     }
 
     // Create invitation
+    const token = crypto.randomBytes(32).toString("hex");
     const invitation = await Invitation.create({
       project: project._id,
       email,
       role,
       invitedBy: req.user._id,
+      token,
+      tokenExpires: new Date(Date.now() + 1000 * 60 * 60 * 24), // 24h
     });
 
     // Send email

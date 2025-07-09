@@ -10,6 +10,7 @@ import {
 import { acceptInvitation, inviteToProject } from "../controllers/invitation";
 import { createTask, getProjectTasks, updateTask } from "../controllers/task";
 import { getProjectActivities } from "../controllers/activity";
+
 const router = express.Router();
 router.post("/", auth, validateProject(), createProject);
 router.get("/", auth, getProjects);
@@ -20,13 +21,12 @@ router.patch("/:id", auth, validateProject(), updateProject);
 // ======================
 router.post("/:projectId/tasks", auth, createTask);
 router.get("/:projectId/tasks", auth, getProjectTasks);
-router.patch("/tasks/:id", auth, updateTask);
 
 // ======================
 // Invitation Routes
 // ======================
 router.post("/:projectId/invite", auth, inviteToProject);
-router.post("/invitations/accept", auth, acceptInvitation);
+
 // ======================
 // Activity Routes
 // ======================

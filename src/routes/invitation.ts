@@ -1,8 +1,7 @@
 import express from "express";
 import { auth } from "../middlewares/auth";
-import { updateTask } from "../controllers/task";
-
+import { acceptInvitation } from "../controllers/invitation";
 const router = express.Router();
-router.patch("/:id", auth, updateTask);
+router.post("/accept", auth, acceptInvitation);
 
 export default router;

@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import Activity from "../models/activity";
 import mongoose from "mongoose";
 import Task from "../models/task";
 import Project from "../models/project";
