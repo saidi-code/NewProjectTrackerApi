@@ -3,7 +3,6 @@ import Project from "../models/project";
 import { AppError } from "../utils/error";
 import { IUser } from "../types";
 import { Types } from "mongoose";
-
 function isError(error: unknown): error is Error {
   return error instanceof Error;
 }
@@ -112,61 +111,74 @@ export const updateTeamMemberRole = async (req: any, res: any) => {
 
 export const removeTeamMember = async (req: any, res: any) => {
   try {
-    // 1. Validate request
+    // 1. Authentication check
     if (!req.user) {
-      return res
-        .status(401)
-        .json({ message: "Unauthorized: User not authenticated" });
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const { teamId, memberId } = req.params;
+    const { projectId, memberId } = req.params; // Changed from teamId to projectId
 
-    if (!Types.ObjectId.isValid(teamId) || !Types.ObjectId.isValid(memberId)) {
-      return res.status(400).json({ message: "Invalid team or member ID" });
+    // 2. Validate IDs
+    if (
+      !Types.ObjectId.isValid(projectId) ||
+      !Types.ObjectId.isValid(memberId)
+    ) {
+      return res.status(400).json({ message: "Invalid ID format" });
     }
 
-    // 2. Check if the requester is the team owner or has admin rights
-    const team = await ProjectTeam.findById(teamId);
-    if (!team) {
-      return res.status(404).json({ message: "Team not found" });
+    // 3. Find the project
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
     }
 
-    const isRequesterOwner = team.owner.toString() === req.user._id.toString();
-    const isRequesterAdmin = team.admins.some(
-      (admin) => admin.toString() === req.user!._id.toString()
+    // 4. Convert IDs for comparison
+    const requesterId = req.user._id.toString();
+    const targetMemberId = new Types.ObjectId(memberId).toString();
+
+    // 5. Find requester in team
+    const requester = project.team.find(
+      (member) => member.user.toString() === requesterId
     );
 
-    if (!isRequesterOwner && !isRequesterAdmin) {
+    // 6. Authorization check
+    if (!requester) {
       return res
         .status(403)
-        .json({ message: "Forbidden: Only owners/admins can remove members" });
+        .json({ message: "You're not part of this project" });
     }
 
-    // 3. Prevent self-removal if the user is the owner
-    if (team.owner.toString() === memberId) {
-      return res
-        .status(400)
-        .json({ message: "Owners cannot remove themselves" });
+    // Only owners and admins can remove members
+    if (requester.role !== "owner" && requester.role !== "admin") {
+      return res.status(403).json({ message: "Insufficient permissions" });
     }
 
-    // 4. Remove the member
-    const updatedTeam = await ProjectTeam.findByIdAndUpdate(
-      teamId,
-      {
-        $pull: {
-          members: { user: memberId },
-          admins: memberId, // Also remove from admins if applicable
-        },
-      },
-      { new: true }
-    ).populate("members.user", "name email"); // Optional: Return populated data
+    // 7. Find target member
+    const targetMemberIndex = project.team.findIndex(
+      (member) => member.user.toString() === targetMemberId
+    );
+
+    if (targetMemberIndex === -1) {
+      return res.status(404).json({ message: "Member not found in project" });
+    }
+
+    // 8. Prevent owner self-removal
+    if (project.team[targetMemberIndex].role === "owner") {
+      return res.status(400).json({ message: "Owner cannot be removed" });
+    }
+
+    // 9. Remove member from team array
+    project.team.splice(targetMemberIndex, 1);
+
+    // 10. Save the updated project
+    const updatedProject = await project.save();
 
     res.status(200).json({
       message: "Member removed successfully",
-      team: updatedTeam,
+      project: updatedProject,
     });
   } catch (error) {
-    console.error("Error removing team member:", error);
+    console.error("Error in removeTeamMember:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
