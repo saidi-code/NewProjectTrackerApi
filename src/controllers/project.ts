@@ -59,7 +59,8 @@ export const getProject = async (req: any, res: any) => {
 export const updateProject = async (req: any, res: any) => {
   try {
     const { title, description, status } = req.body;
-
+    const oldProject = await Project.findById(req.params.id).lean();
+    res.locals.oldDoc = oldProject;
     const project = await Project.findOneAndUpdate(
       {
         _id: req.params.id,

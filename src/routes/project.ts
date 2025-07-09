@@ -1,6 +1,11 @@
 import express from "express";
-import { auth } from "../middlewares/auth";
 import { validateProject } from "../utils/validators";
+import { validateRoleUpdate } from "../utils/validators";
+import {
+  getProjectTeam,
+  updateTeamMemberRole,
+  removeTeamMember,
+} from "../controllers/projectTeam";
 import {
   getProject,
   getProjects,
@@ -12,23 +17,38 @@ import { createTask, getProjectTasks, updateTask } from "../controllers/task";
 import { getProjectActivities } from "../controllers/activity";
 
 const router = express.Router();
-router.post("/", auth, validateProject(), createProject);
-router.get("/", auth, getProjects);
-router.get("/:id", auth, getProject);
-router.patch("/:id", auth, validateProject(), updateProject);
+router.post("/", validateProject(), createProject);
+router.get("/", getProjects);
+router.get("/:id", getProject);
+router.patch("/:id", validateProject(), updateProject);
 // ======================
 // Task Routes
 // ======================
-router.post("/:projectId/tasks", auth, createTask);
-router.get("/:projectId/tasks", auth, getProjectTasks);
+router.post("/:projectId/tasks", createTask);
+router.get("/:projectId/tasks", getProjectTasks);
 
 // ======================
 // Invitation Routes
 // ======================
-router.post("/:projectId/invite", auth, inviteToProject);
+router.post("/:projectId/invite", inviteToProject);
 
 // ======================
 // Activity Routes
 // ======================
-router.get("/:projectId/activities", auth, getProjectActivities);
+router.get("/:projectId/activities", getProjectActivities);
+
+// ======================
+// Team Routes
+// ======================
+
+// Get project team
+router.get("/:projectId/team", getProjectTeam);
+// Update member role
+router.patch(
+  "/:projectId/team/:memberId",
+  validateRoleUpdate,
+  updateTeamMemberRole
+);
+// Remove member
+router.delete("/:projectId/team/:memberId", removeTeamMember);
 export default router;

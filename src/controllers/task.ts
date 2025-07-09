@@ -59,6 +59,8 @@ export const createTask = async (req: any, res: any) => {
 
 export const updateTask = async (req: any, res: any) => {
   try {
+    const oldTask = await Task.findById(req.params.id).lean();
+    res.locals.oldDoc = oldTask;
     const task = await Task.findOneAndUpdate(
       {
         _id: req.params.id,

@@ -38,3 +38,11 @@ export const validateProject = (): ValidationChain[] => [
     .isLength({ max: 1000 })
     .withMessage("Description cannot exceed 1000 characters"),
 ];
+
+export const validateRoleUpdate = [
+  body("role")
+    .notEmpty()
+    .withMessage("Role is required")
+    .isIn(["admin", "member", "viewer", "manager"])
+    .withMessage("Invalid role"),
+];
