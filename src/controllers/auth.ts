@@ -1,11 +1,12 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
+import passport from "passport";
 import User from "../models/user";
 
 import { IUser } from "../types/user";
 function isError(error: unknown): error is Error {
   return error instanceof Error;
 }
-import passport from "passport";
+
 export const register = async (req: Request, res: any, next: any) => {
   try {
     const { name, email, password } = req.body;
@@ -28,47 +29,32 @@ export const register = async (req: Request, res: any, next: any) => {
   }
 };
 
-export const login = async (req: Request, res: any, next: any) => {
-  try {
-    const { email, password } = req.body;
-    const user: IUser = await User.findOne({ email }).select("+password");
-
-    if (!user || !(await user.comparePassword(password))) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
-
-    passport.authenticate("local", (err: any, user: any, info: any) => {
-      if (err) return next(err);
-      if (!user) {
-        res.status(400).json({ msg: info.message });
-      }
-
-      req.logIn(user, (err: any) => {
-        if (err) return next(err);
-
-        res.status(200).json({
-          msg: "Successfully logged in!",
-          user: { name: user.name, email: user.email, id: user._id },
-        });
+export const login = (req: Request, res: Response, next: NextFunction) => {
+  passport.authenticate("local", (err: Error, user: any, info: any) => {
+    if (err) return next(err);
+    if (!user) {
+      return res.status(401).json({
+        status: "error",
+        message: info.message || "Login failed",
       });
-    })(req, res, next);
-
-    res.json({
-      msg: "Successfully logged in!",
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-      },
-    });
-  } catch (error: unknown) {
-    if (isError(error)) {
-      res.status(500).json({ error: error.message });
-    } else {
-      res.status(500).json({ error: "Unknown error" });
     }
-  }
+
+    req.logIn(user, (err) => {
+      if (err) return next(err);
+
+      return res.json({
+        status: "success",
+        data: {
+          user: {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          },
+        },
+      });
+    });
+  })(req, res, next);
 };
 
 export const logout = (req: Request, res: any, next: any) => {

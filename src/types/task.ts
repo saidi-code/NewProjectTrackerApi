@@ -14,6 +14,7 @@ export interface ITask extends Document {
   labels?: string[];
   estimatedHours?: number;
   actualHours?: number;
+  createdAt?: Date;
 }
 
 export type TaskResponse = Omit<

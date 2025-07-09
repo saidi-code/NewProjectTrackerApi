@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { AuthTokenPayload } from "../types/auth";
-import config from "../config";
+import config from "../config/config";
 import { IUser } from "../types/user";
 
 export const verifyPassword = async (

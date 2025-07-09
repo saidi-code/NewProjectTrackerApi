@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-
+import { IProject } from "../types";
 const teamMemberSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
@@ -46,8 +46,27 @@ const projectSchema = new mongoose.Schema(
       enum: ["planning", "active", "on-hold", "completed", "archived"],
       default: "planning",
     },
-    startDate: Date,
-    endDate: Date,
+    startDate: {
+      type: Date,
+      required: [true, "Start date is required"],
+      validate: {
+        validator: function (this: IProject, value: Date) {
+          // End date must be after start date if both exist
+          return !this.endDate || value < this.endDate;
+        },
+        message: "Start date must be before end date",
+      },
+    },
+    endDate: {
+      type: Date,
+      validate: {
+        validator: function (this: IProject, value: Date) {
+          // End date must be after start date if both exist
+          return !this.startDate || value > this.startDate;
+        },
+        message: "End date must be after start date",
+      },
+    },
     tags: [
       {
         type: String,

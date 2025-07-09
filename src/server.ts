@@ -1,11 +1,11 @@
 import express from "express";
-import passport from "passport";
+import passport from "./config/passport";
 import cors from "cors";
-import session from "./middlewares/session";
+import session from "./config/session";
 import { errorHandler } from "./middlewares/error";
 import appRoutes from "./routes";
 import { initMongoDB } from "./utils/db";
-import config from "./config";
+import config from "./config/config";
 
 const app = express();
 async function initApp() {

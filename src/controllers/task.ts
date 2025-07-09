@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 import Task from "../models/task";
 import Project from "../models/project";
 import { ITask } from "../types/task";
@@ -7,24 +8,45 @@ function isError(error: unknown): error is Error {
 }
 export const createTask = async (req: any, res: any) => {
   try {
+    const { projectId } = req.params;
     // Check if user has access to the project
     const project = await Project.findOne({
-      _id: req.body.project,
-      "team.user": req.user._id,
+      _id: projectId,
     });
 
     if (!project) {
-      return res
-        .status(403)
-        .json({ error: "Unauthorized to create tasks in this project" });
+      return res.status(403).json({
+        status: "error",
+        message:
+          "Unauthorized to create tasks in this project or project not found",
+      });
     }
-
+    if (req.body.assignedTo) {
+      const isMember = project.team.some(
+        (member) => member.user._id.toString() === req.body.assignedTo
+      );
+      if (!isMember) {
+        return res.status(400).json({
+          status: "error",
+          message: "Assigned user is not a project member",
+        });
+      }
+    }
     const task = await Task.create({
       ...req.body,
       createdBy: req.user._id,
+      actualHours: req.body.actualHours || 0,
+      status: req.body.status || "todo",
+      project: new mongoose.Types.ObjectId(projectId),
     });
 
-    res.status(201).json(task);
+    if (req.body.assignedTo) {
+      await task.populate("assignedTo", "name email avatar");
+    }
+    res.status(201).json({
+      status: "success",
+      data: task,
+    });
   } catch (error: unknown) {
     if (isError(error)) {
       res.status(500).json({ error: error.message });

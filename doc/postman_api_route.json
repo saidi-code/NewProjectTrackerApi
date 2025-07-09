@@ -1,9 +1,7 @@
 {
     "info": {
-        "_postman_id": "a1b2c3d4-e5f6-7890-f1e2-d3c4b5a6f7e8",
-        "name": "Project Management API (Passport Session)",
-        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-        "description": "For Passport.js session authentication (not JWT)"
+        "name": "Project Management API",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "item": [
         {
@@ -95,7 +93,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"title\": \"New Project\",\n  \"description\": \"Project description\"\n}"
+                            "raw": "{\n  \"title\": \"New Project\",\n  \"description\": \"Project description\",\n  \"startDate\": \"2024-03-01\",\n  \"endDate\": \"2024-03-31\"\n}"
                         },
                         "url": {
                             "raw": "{{base_url}}/projects",
@@ -109,17 +107,82 @@
                     }
                 },
                 {
-                    "name": "Get All Projects",
+                    "name": "Get All Projects (Filtered/Paginated)",
                     "request": {
                         "method": "GET",
                         "header": [],
                         "url": {
-                            "raw": "{{base_url}}/projects",
+                            "raw": "{{base_url}}/projects?status=active&startDate=2024-01-01&endDate=2024-12-31&page=1&limit=10",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
                                 "projects"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "active"
+                                },
+                                {
+                                    "key": "startDate",
+                                    "value": "2024-01-01"
+                                },
+                                {
+                                    "key": "endDate",
+                                    "value": "2024-12-31"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Single Project",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/projects/{{project_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{{project_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Project",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"title\": \"Updated Project Title\",\n  \"status\": \"active\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/projects/{{project_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{{project_id}}"
                             ]
                         }
                     }
@@ -141,15 +204,142 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"title\": \"Design Homepage\",\n  \"project\": \"{{project_id}}\",\n  \"assignedTo\": \"{{user_id}}\"\n}"
+                            "raw": "{\n  \"title\": \"New Task\",\n  \"description\": \"Task description\",\n  \"status\": \"todo\",\n  \"priority\": \"medium\"\n}"
                         },
                         "url": {
-                            "raw": "{{base_url}}/tasks",
+                            "raw": "{{base_url}}/projects/{{project_id}}/tasks",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
+                                "projects",
+                                "{{project_id}}",
                                 "tasks"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Project Tasks",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/projects/{{project_id}}/tasks",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{{project_id}}",
+                                "tasks"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Task",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"status\": \"in-progress\",\n  \"assignedTo\": \"{{user_id}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/tasks/{{task_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "tasks",
+                                "{{task_id}}"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Invitations",
+            "item": [
+                {
+                    "name": "Invite to Project",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"role\": \"member\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/projects/{{project_id}}/invite",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{{project_id}}",
+                                "invite"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Accept Invitation",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"token\": \"{{invitation_token}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/invitations/accept",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "invitations",
+                                "accept"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Activities",
+            "item": [
+                {
+                    "name": "Get Project Activities",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/projects/{{project_id}}/activities",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "projects",
+                                "{{project_id}}",
+                                "activities"
                             ]
                         }
                     }
@@ -157,57 +347,56 @@
             ]
         }
     ],
-    "auth": null,
-    "event": [
+    "variable": [
         {
-            "listen": "prerequest",
-            "script": {
-                "type": "text/javascript",
-                "exec": [
-                    "// Enable session cookies",
-                    "postman.setNextRequest('Send with session');"
-                ]
-            }
+            "key": "base_url",
+            "value": "http://localhost:5000/api/v1"
         },
+        {
+            "key": "project_id",
+            "value": "",
+            "description": "Set after creating a project"
+        },
+        {
+            "key": "task_id",
+            "value": "",
+            "description": "Set after creating a task"
+        },
+        {
+            "key": "user_id",
+            "value": "",
+            "description": "Set after user registration"
+        },
+        {
+            "key": "invitation_token",
+            "value": "",
+            "description": "From invitation email"
+        }
+    ],
+    "event": [
         {
             "listen": "test",
             "script": {
                 "type": "text/javascript",
                 "exec": [
-                    "// For Passport session, no need to handle tokens",
-                    "pm.test(\"Status code is 200\", function() {",
-                    "    pm.response.to.have.status(200);",
-                    "});",
-                    "",
-                    "// Save IDs for later requests (if response contains them)",
-                    "if (pm.response.code === 200) {",
+                    "// Save IDs from responses",
+                    "if (pm.response.code === 200 || pm.response.code === 201) {",
                     "    const jsonData = pm.response.json();",
                     "    if (jsonData._id) {",
-                    "        pm.environment.set(\"user_id\", jsonData._id);",
+                    "        pm.environment.set(\"project_id\", jsonData._id);",
                     "    }",
-                    "    if (jsonData.project && jsonData.project._id) {",
-                    "        pm.environment.set(\"project_id\", jsonData.project._id);",
+                    "    if (jsonData.task && jsonData.task._id) {",
+                    "        pm.environment.set(\"task_id\", jsonData.task._id);",
+                    "    }",
+                    "    if (jsonData.user && jsonData.user._id) {",
+                    "        pm.environment.set(\"user_id\", jsonData.user._id);",
+                    "    }",
+                    "    if (jsonData.token) {",
+                    "        pm.environment.set(\"invitation_token\", jsonData.token);",
                     "    }",
                     "}"
                 ]
             }
-        }
-    ],
-    "variable": [
-        {
-            "key": "base_url",
-            "value": "http://localhost:5000/api",
-            "description": "Update with your server URL"
-        },
-        {
-            "key": "user_id",
-            "value": "",
-            "description": "Auto-set after registration/login"
-        },
-        {
-            "key": "project_id",
-            "value": "",
-            "description": "Auto-set after project creation"
         }
     ]
 }

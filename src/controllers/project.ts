@@ -1,6 +1,14 @@
 import { Request, Response } from "express";
 import Project from "../models/project";
 import { IProject } from "../types/project";
+
+interface QueryParams {
+  status?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: string;
+  limit?: string;
+}
 function isError(error: unknown): error is Error {
   return error instanceof Error;
 }
@@ -76,13 +84,53 @@ export const updateProject = async (req: any, res: any) => {
   }
 };
 
-export const getProjects = async (req: any, res: Response) => {
+export const getProjects = async (req: Request, res: Response) => {
   try {
-    const projects = await Project.find({
-      "team.user": req.user._id,
-    }).sort("-createdAt");
+    const {
+      status,
+      startDate,
+      endDate,
+      page = "1",
+      limit = "10",
+    } = req.query as QueryParams;
 
-    res.json(projects);
+    // 1) Create base filter
+    const filter: any = {};
+
+    // 2) Add status filter if provided
+    if (status) {
+      filter.status = status;
+    }
+
+    // 3) Add date range filters
+    if (startDate || endDate) {
+      filter.startDate = {};
+      if (startDate) filter.startDate.$gte = new Date(startDate);
+      if (endDate) filter.startDate.$lte = new Date(endDate);
+    }
+
+    // 4) Pagination
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    // 5) Execute query
+    const projects = await Project.find(filter)
+      .sort({ startDate: 1 }) // Sort by startDate ascending
+      .skip(skip)
+      .limit(limitNum);
+
+    // 6) Count total documents for pagination info
+    const total = await Project.countDocuments(filter);
+
+    res.json({
+      status: "success",
+      results: projects.length,
+      total,
+      totalPages: Math.ceil(total / limitNum),
+      currentPage: pageNum,
+      data: projects,
+    });
   } catch (error: unknown) {
     if (isError(error)) {
       res.status(500).json({ error: error.message });

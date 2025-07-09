@@ -1,6 +1,6 @@
 import session from "express-session";
 import { SessionOptions } from "express-session";
-import config from "../config";
+import config from "./config";
 const sessionConfig: SessionOptions = {
   secret: config.SESSION_SECRET,
   resave: false,
