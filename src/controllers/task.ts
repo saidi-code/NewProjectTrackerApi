@@ -23,7 +23,7 @@ export const createTask = async (req: any, res: any) => {
       });
     }
     if (req.body.assignedTo) {
-      const isMember = project.team.some(
+      const isMember = project.team.members.some(
         (member) => member.user._id.toString() === req.body.assignedTo
       );
       if (!isMember) {
@@ -125,3 +125,23 @@ async function getAdminProjects(userId: string) {
   });
   return projects.map((p) => p._id);
 }
+
+// // In your task completion controller
+// const createTaskCompletedNotification = async (task) => {
+//   const project = await Project.findById(task.project);
+
+//   const recipients = project.team
+//     .filter((member) => ["owner", "admin", "manager"].includes(member.role))
+//     .map((member) => member.user);
+
+//   await Notification.insertMany(
+//     recipients.map((userId) => ({
+//       recipient: userId,
+//       sender: task.completedBy,
+//       project: task.project,
+//       type: "task_completed",
+//       message: `Task "${task.title}" has been completed`,
+//       metadata: { taskId: task._id },
+//     }))
+//   );
+// };

@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { AuthTokenPayload } from "../types/auth";
 import config from "../config/config";
 import { IUser } from "../types/user";
@@ -19,6 +19,5 @@ export const passportVerify = async (
 };
 
 export const hashPassword = async (password: string): Promise<string> => {
-  const bcrypt = await import("bcryptjs");
   return await bcrypt.hash(password, 12);
 };

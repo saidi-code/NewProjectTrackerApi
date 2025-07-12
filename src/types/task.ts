@@ -1,6 +1,7 @@
-import { Document } from "mongoose";
+import { Document, Types } from "mongoose";
 
 export interface ITask extends Document {
+  _id: Types.ObjectId;
   title: string;
   description?: string;
   status: "backlog" | "todo" | "in-progress" | "review" | "done";
@@ -16,16 +17,3 @@ export interface ITask extends Document {
   actualHours?: number;
   createdAt?: Date;
 }
-
-export type TaskResponse = Omit<
-  ITask,
-  "project" | "assignedTo" | "createdBy"
-> & {
-  project: {
-    _id: string;
-    title: string;
-  };
-  assignedTo?: UserProfile;
-  createdBy: UserProfile;
-  isOverdue: boolean;
-};

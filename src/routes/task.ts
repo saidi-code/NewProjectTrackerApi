@@ -4,5 +4,5 @@ import { updateTask } from "../controllers/task";
 
 const router = express.Router();
 router.patch("/:id", updateTask);
-
+// router.put("/:id");
 export default router;

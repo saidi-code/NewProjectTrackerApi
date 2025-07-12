@@ -3,6 +3,7 @@ import Project from "../models/project";
 import { AppError } from "../utils/error";
 import { IUser } from "../types";
 import { Types } from "mongoose";
+
 function isError(error: unknown): error is Error {
   return error instanceof Error;
 }
@@ -11,7 +12,7 @@ export const getProjectTeam = async (req: Request, res: Response) => {
   try {
     const project = await Project.findById(req.params.projectId)
       .select("team")
-      .populate("team.user", "name email avatar role");
+      .populate("team.members.user", "name email avatar role");
 
     if (!project) {
       throw new AppError("Project not found", 404);
@@ -45,7 +46,7 @@ export const updateTeamMemberRole = async (req: any, res: any) => {
     // Find the project first to verify permissions
     const project = await Project.findOne({
       _id: projectId,
-      "team._id": memberId,
+      "team.members.user": memberId,
     });
 
     if (!project) {
@@ -53,8 +54,8 @@ export const updateTeamMemberRole = async (req: any, res: any) => {
     }
 
     // Check if requester is admin/owner
-    const requester = project.team.find(
-      (member) => member.user._id.toString() === req.user._id.toString()
+    const requester = project.team.members.find(
+      (member) => member.user === req.user._id
     );
 
     if (
@@ -65,8 +66,8 @@ export const updateTeamMemberRole = async (req: any, res: any) => {
     }
 
     // Find the target member
-    const targetMember = project.team.find(
-      (member) => member._id.toString() === memberId
+    const targetMember = project.team.members.find(
+      (member) => member === memberId
     );
 
     if (!targetMember) {
@@ -89,13 +90,13 @@ export const updateTeamMemberRole = async (req: any, res: any) => {
     const updatedProject = await Project.findOneAndUpdate(
       {
         _id: projectId,
-        "team._id": memberId,
+        "team.members.user._id": memberId,
       },
       {
-        $set: { "team.$.role": role },
+        $set: { "team.members.$.role": role }, // Correct path to update
       },
       { new: true }
-    ).populate("team.user", "name email avatar");
+    ).populate("team.members.user", "name email avatar");
 
     res.json(updatedProject);
   } catch (error: unknown) {
@@ -108,7 +109,6 @@ export const updateTeamMemberRole = async (req: any, res: any) => {
 };
 
 // Remove team member
-
 export const removeTeamMember = async (req: any, res: any) => {
   try {
     // 1. Authentication check
@@ -137,7 +137,7 @@ export const removeTeamMember = async (req: any, res: any) => {
     const targetMemberId = new Types.ObjectId(memberId).toString();
 
     // 5. Find requester in team
-    const requester = project.team.find(
+    const requester = project.team.members.find(
       (member) => member.user.toString() === requesterId
     );
 
@@ -154,7 +154,7 @@ export const removeTeamMember = async (req: any, res: any) => {
     }
 
     // 7. Find target member
-    const targetMemberIndex = project.team.findIndex(
+    const targetMemberIndex = project.team.members.findIndex(
       (member) => member.user.toString() === targetMemberId
     );
 
@@ -163,12 +163,12 @@ export const removeTeamMember = async (req: any, res: any) => {
     }
 
     // 8. Prevent owner self-removal
-    if (project.team[targetMemberIndex].role === "owner") {
+    if (project.team.members[targetMemberIndex].role === "owner") {
       return res.status(400).json({ message: "Owner cannot be removed" });
     }
 
     // 9. Remove member from team array
-    project.team.splice(targetMemberIndex, 1);
+    project.team.members.splice(targetMemberIndex, 1);
 
     // 10. Save the updated project
     const updatedProject = await project.save();

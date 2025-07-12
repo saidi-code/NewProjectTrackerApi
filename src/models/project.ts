@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { IProject } from "../types";
+import { IProject, ITask, TeamMember } from "../types";
 const teamMemberSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
@@ -28,7 +28,7 @@ const teamMemberSchema = new mongoose.Schema({
   },
 });
 
-const projectSchema = new mongoose.Schema(
+const projectSchema = new mongoose.Schema<IProject>(
   {
     title: {
       type: String,
@@ -79,7 +79,9 @@ const projectSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    team: [teamMemberSchema],
+    team: {
+      members: [teamMemberSchema],
+    },
     settings: {
       taskAssignment: {
         type: String,
@@ -115,7 +117,19 @@ projectSchema.virtual("completedTaskCount", {
   match: { completed: true },
   count: true,
 });
+projectSchema.methods.getAdminIds = function () {
+  return this.team.members
+    .filter((member: TeamMember) =>
+      ["owner", "admin", "manager"].includes(member.role)
+    )
+    .map((member: TeamMember) => member.user);
+};
 
+projectSchema.methods.getTaskAssignees = function (taskId: string) {
+  return this.tasks
+    .filter((task: ITask) => task._id.equals(taskId))
+    .flatMap((task: ITask) => task.assignedTo);
+};
 // Indexes
 projectSchema.index({ createdBy: 1 });
 projectSchema.index({ status: 1 });

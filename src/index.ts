@@ -6,8 +6,10 @@ import { errorHandler } from "./middlewares/error";
 import appRoutes from "./routes";
 import { initMongoDB } from "./utils/db";
 import config from "./config/config";
-
+import { initSocket } from "./server/socket";
+import http from "http";
 const app = express();
+const server = http.createServer(app);
 async function initApp() {
   await initMongoDB();
   app.use(
@@ -25,7 +27,9 @@ async function initApp() {
     res.status(200).json({ msg: "Server 🆗👌" });
   });
   app.use(errorHandler);
-  app.listen(config.PORT, () => {
+  // Initialize Socket.IO
+  initSocket(server);
+  server.listen(config.PORT, () => {
     console.log(`Server Start At Port: ${config.PORT} 🚀`);
   });
 }

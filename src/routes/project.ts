@@ -46,7 +46,7 @@ router.get("/:projectId/team", getProjectTeam);
 // Update member role
 router.patch(
   "/:projectId/team/:memberId",
-  validateRoleUpdate,
+  validateRoleUpdate(),
   updateTeamMemberRole
 );
 // Remove member

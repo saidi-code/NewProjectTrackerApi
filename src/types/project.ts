@@ -1,10 +1,22 @@
-import { Document } from "mongoose";
+import { Document, Types, ObjectId } from "mongoose";
 
+export interface TeamMemberUser {
+  _id: Types.ObjectId;
+  name?: string;
+  email: string;
+  settings: {
+    notificationPreferences?: {
+      email?: boolean;
+      app?: boolean;
+    };
+  };
+}
 export interface TeamMember {
-  user: string; // User ID
+  user: Types.ObjectId | TeamMemberUser;
   role: "owner" | "admin" | "manager" | "member" | "viewer";
   joinedAt: Date;
-  addedBy: string; // User ID
+  email?: string;
+  addedBy?: ObjectId;
 }
 
 export interface IProject extends Document {
@@ -14,18 +26,13 @@ export interface IProject extends Document {
   startDate?: Date;
   endDate?: Date;
   tags?: string[];
-  createdBy: string; // User ID
-  team: TeamMember[];
+  createdBy: ObjectId;
+  team: {
+    members: TeamMember[];
+  };
   settings: {
     taskAssignment: "anyone" | "managers-only" | "specific-roles";
     visibility: "private" | "team-only" | "public";
   };
+  getAdminIds(): Types.ObjectId[];
 }
-
-export type ProjectResponse = Omit<IProject, "team"> & {
-  team: {
-    user: UserProfile;
-    role: string;
-    joinedAt: Date;
-  }[];
-};

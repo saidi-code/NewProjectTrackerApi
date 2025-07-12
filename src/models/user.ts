@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
-
-const userSchema = new mongoose.Schema(
+import crypto from "crypto";
+import { IUser } from "../types";
+const userSchema = new mongoose.Schema<IUser>(
   {
     name: {
       type: String,
@@ -33,11 +34,32 @@ const userSchema = new mongoose.Schema(
     },
     lastActive: Date,
     settings: {
-      emailNotifications: {
-        type: Boolean,
-        default: true,
+      taskAssignment: {
+        type: String,
+        default: "managers-only",
+      },
+      visibility: {
+        type: String,
+        default: "private",
+      },
+      notificationPreferences: {
+        email: {
+          type: Boolean,
+          default: true,
+        },
+        inApp: {
+          type: Boolean,
+          default: true,
+        },
+        push: {
+          type: Boolean,
+          default: false,
+        },
+        // Add more notification types as needed
       },
     },
+    passwordResetToken: String,
+    passwordResetExpires: Date,
   },
   { timestamps: true }
 );
@@ -55,6 +77,17 @@ userSchema.methods.comparePassword = async function (
 ): Promise<boolean> {
   return await bcrypt.compare(candidatePassword, this.password);
 };
+userSchema.methods.createPasswordResetToken = function (): string {
+  const resetToken = crypto.randomBytes(32).toString("hex");
 
+  this.passwordResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  return resetToken;
+};
 const User = mongoose.model("User", userSchema);
 export default User;

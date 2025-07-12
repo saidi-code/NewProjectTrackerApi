@@ -39,10 +39,40 @@ export const validateProject = (): ValidationChain[] => [
     .withMessage("Description cannot exceed 1000 characters"),
 ];
 
-export const validateRoleUpdate = [
+export const validateRoleUpdate = (): ValidationChain[] => [
   body("role")
     .notEmpty()
     .withMessage("Role is required")
     .isIn(["admin", "member", "viewer", "manager"])
     .withMessage("Invalid role"),
+];
+
+export const validateNotificationPreferences = (): ValidationChain[] => [
+  // Validate each preference field
+  body("email")
+    .optional()
+    .isBoolean()
+    .withMessage("Email preference must be a boolean"),
+  body("inApp")
+    .optional()
+    .isBoolean()
+    .withMessage("In-app preference must be a boolean"),
+  body("push")
+    .optional()
+    .isBoolean()
+    .withMessage("Push preference must be a boolean"),
+  body("slack")
+    .optional()
+    .isBoolean()
+    .withMessage("Slack preference must be a boolean"),
+
+  // Custom validation for at least one enabled channel
+  body().custom((body) => {
+    const preferences = ["email", "inApp", "push", "slack"];
+    const atLeastOneEnabled = preferences.some((pref) => body[pref] === true);
+    if (!atLeastOneEnabled) {
+      throw new Error("At least one notification channel must be enabled");
+    }
+    return true;
+  }),
 ];

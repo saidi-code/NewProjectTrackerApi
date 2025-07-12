@@ -10,7 +10,10 @@ export interface IUser extends Document {
   settings: {
     emailNotifications: boolean;
   };
+  passwordResetToken?: string;
+  passwordResetExpires?: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
+  createPasswordResetToken: () => string;
 }
 
 export type UserProfile = {
