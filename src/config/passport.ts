@@ -15,17 +15,9 @@ passport.use(
       try {
         // 1) Find user by email
         const user: IUser = await User.findOne({ email }).select("+password");
-        if (!user) {
-          return done(new AppError("Incorrect email or password", 401), false);
+        if (!user || !(await user.comparePassword(password))) {
+          return done(null, false, { message: "Incorrect email or password" });
         }
-
-        // 2) Check if password is correct
-        const isMatch = await user.comparePassword(password);
-        if (!isMatch) {
-          return done(new AppError("Incorrect email or password", 401), false);
-        }
-
-        // 3) If everything ok, return user
         return done(null, user);
       } catch (error) {
         return done(error, false);

@@ -223,7 +223,7 @@ export const sendNewMemberJoinEmail = async ({
 export const sendPasswordResetEmail = async (
   email: string,
   resetToken: string,
-  req: Request
+  req: any
 ) => {
   const resetUrl = `${req.protocol}://${req.get(
     "host"
@@ -306,10 +306,6 @@ export const sendPasswordResetEmail = async (
     </body>
     </html>
   `;
-
-  await sendEmail({
-    email,
-    subject: "Your password reset token (valid for 10 minutes)",
-    html,
-  });
+  const subject = "Your password reset token (valid for 10 minutes)";
+  await sendEmail(email, subject, html);
 };

@@ -23,6 +23,10 @@ const userSchema = new mongoose.Schema<IUser>(
       minlength: [8, "Password must be at least 8 characters"],
       select: false,
     },
+    passwordConfirm: {
+      type: String,
+      select: false,
+    },
     avatar: {
       type: String,
       default: "",
@@ -68,6 +72,7 @@ const userSchema = new mongoose.Schema<IUser>(
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 12);
+  this.passwordConfirm = undefined;
   next();
 });
 

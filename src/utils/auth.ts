@@ -1,5 +1,4 @@
 import bcrypt from "bcryptjs";
-import { AuthTokenPayload } from "../types/auth";
 import config from "../config/config";
 import { IUser } from "../types/user";
 

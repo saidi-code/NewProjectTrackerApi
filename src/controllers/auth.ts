@@ -87,7 +87,6 @@ export const logout = (req: Request, res: any, next: any) => {
 };
 
 export const forgotPassword = async (req: any, res: any) => {
-  let user: HydratedDocument<IUser> | null = null;
   try {
     // 1. Get user by email
     const user = await User.findOne({ email: req.body.email });
@@ -99,34 +98,34 @@ export const forgotPassword = async (req: any, res: any) => {
 
     // 2. Generate reset token
     const resetToken = user.createPasswordResetToken();
-    await user.save({ validateBeforeSave: false, validateModifiedOnly: true });
+    await user.save({ validateBeforeSave: false });
 
     // 3. Send email
-    await sendPasswordResetEmail(user.email, resetToken, req);
-    res.status(200).json({
-      status: "success",
-      message: "Token sent to email!",
-    });
-  } catch (err: unknown) {
-    // Type-safe error handling
-    if (err instanceof Error) {
-      console.error("Password reset error:", err.message);
-    }
-
-    // Type-safe token cleanup
-    if (user && "passwordResetToken" in user) {
+    try {
+      await sendPasswordResetEmail(user.email, resetToken, req);
+      return res.status(200).json({
+        status: "success",
+        message: "Token sent to email!",
+      });
+    } catch (emailError) {
+      // If email fails, clear the reset token
       user.passwordResetToken = undefined;
       user.passwordResetExpires = undefined;
       await user.save({ validateBeforeSave: false });
-    }
 
+      throw emailError;
+    }
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error("Password reset error:", err.message);
+    }
     return res.status(500).json({
       message: "There was an error sending the email. Try again later!",
     });
   }
 };
 
-export const resetPassword = async (req: Request, res: Response) => {
+export const resetPassword = async (req: any, res: any) => {
   try {
     // 1. Get user based on token
     const hashedToken = crypto
@@ -139,13 +138,13 @@ export const resetPassword = async (req: Request, res: Response) => {
       passwordResetExpires: { $gt: Date.now() },
     });
 
-    // 2. If token hasn't expired and user exists, set new password
     if (!user) {
       return res.status(400).json({
         message: "Token is invalid or has expired",
       });
     }
 
+    // 2. Set new password and clear token
     user.password = req.body.password;
     user.passwordConfirm = req.body.passwordConfirm;
     user.passwordResetToken = undefined;
@@ -153,17 +152,30 @@ export const resetPassword = async (req: Request, res: Response) => {
 
     await user.save();
 
-    // 3. Update changedPasswordAt property (add to user model if needed)
+    // 3. Log the user in using Passport session
+    req.logIn(user, (err: any) => {
+      if (err) {
+        console.error("Login after password reset failed:", err);
+        return res.status(500).json({
+          message: "Password updated but login failed",
+        });
+      }
 
-    // 4. Log the user in (send JWT)
-    const token = generateToken(user._id); // Your existing token generator
-
-    res.status(200).json({
-      status: "success",
-      token,
+      return res.status(200).json({
+        status: "success",
+        message: "Password updated successfully",
+        user: {
+          id: user._id,
+          email: user.email,
+          name: user.name,
+        },
+      });
     });
-  } catch (err) {
-    res.status(500).json({
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error("Password reset error:", err.message);
+    }
+    return res.status(500).json({
       message: "Error resetting password",
     });
   }
