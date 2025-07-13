@@ -6,8 +6,10 @@ import {
   logout,
   forgotPassword,
   resetPassword,
+  checkSession,
 } from "../controllers/auth";
 const router = express.Router();
+router.get("/check-session", checkSession);
 router.post("/register", validateRegister(), register);
 router.post("/login", validateLogin(), login);
 router.get("/logout", logout);

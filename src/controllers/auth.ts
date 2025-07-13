@@ -180,3 +180,11 @@ export const resetPassword = async (req: any, res: any) => {
     });
   }
 };
+
+export const checkSession = async (req: any, res: any) => {
+  if (req.isAuthenticated()) {
+    res.json({ user: req.user });
+  } else {
+    res.status(401).json({ error: "Not authenticated" });
+  }
+};

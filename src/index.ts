@@ -14,7 +14,7 @@ async function initApp() {
   await initMongoDB();
   app.use(
     cors({
-      origin: "http://localhost:3001", // Specify the allowed origin
+      origin: "http://localhost:3000", // Specify the allowed origin
       credentials: true, // Allow cookies/auth headers
     })
   );
