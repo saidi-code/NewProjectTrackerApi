@@ -9,6 +9,7 @@ interface QueryParams {
   endDate?: string;
   page?: string;
   limit?: string;
+  createdBy?: string;
 }
 function isError(error: unknown): error is Error {
   return error instanceof Error;
@@ -102,6 +103,7 @@ export const updateProject = async (req: any, res: any) => {
 export const getProjects = async (req: Request, res: Response) => {
   try {
     const {
+      createdBy,
       status,
       startDate,
       endDate,
@@ -116,7 +118,9 @@ export const getProjects = async (req: Request, res: Response) => {
     if (status) {
       filter.status = status;
     }
-
+    if (createdBy) {
+      filter.createdBy = createdBy;
+    }
     // 3) Add date range filters
     if (startDate || endDate) {
       filter.startDate = {};

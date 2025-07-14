@@ -7,7 +7,7 @@ const sessionConfig: SessionOptions = {
   saveUninitialized: false,
   cookie: {
     secure: config.NODE_ENV === "production",
-    httpOnly: true,
+    httpOnly: config.NODE_ENV === "production",
     maxAge: 1000 * 60 * 60 * 24, // 1 day
   },
   // For production, you might want to add:

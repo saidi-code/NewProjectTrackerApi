@@ -5,6 +5,7 @@ const teamMemberSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
+    index: 1,
   },
   email: {
     // Add this field
@@ -45,6 +46,7 @@ const projectSchema = new mongoose.Schema<IProject>(
       type: String,
       enum: ["planning", "active", "on-hold", "completed", "archived"],
       default: "planning",
+      index: 1,
     },
     startDate: {
       type: Date,
@@ -56,6 +58,7 @@ const projectSchema = new mongoose.Schema<IProject>(
         },
         message: "Start date must be before end date",
       },
+      index: 1,
     },
     endDate: {
       type: Date,
@@ -66,6 +69,7 @@ const projectSchema = new mongoose.Schema<IProject>(
         },
         message: "End date must be after start date",
       },
+      index: 1,
     },
     tags: [
       {
@@ -78,6 +82,7 @@ const projectSchema = new mongoose.Schema<IProject>(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: 1,
     },
     team: {
       members: [teamMemberSchema],

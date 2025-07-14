@@ -32,18 +32,16 @@ export const register = async (req: Request, res: any, next: any) => {
 };
 
 export const login = (req: Request, res: Response, next: NextFunction) => {
-  passport.authenticate("local", (err: Error, user: any, info: any) => {
-    if (err) return next(err);
-    if (!user) {
-      return res.status(401).json({
-        status: "error",
-        message: info.message || "Login failed",
-      });
-    }
+  passport.authenticate("local", (err: any, user: any, info: any) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!user)
+      return res.status(401).json({ error: info?.message || "Login failed" });
 
+    // Successful authentication
     req.logIn(user, (err) => {
-      if (err) return next(err);
+      if (err) return res.status(500).json({ error: err.message });
 
+      // Return sanitized user data
       return res.json({
         status: "success",
         data: {
